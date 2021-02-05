@@ -1,0 +1,190 @@
+MQTT: The Standard for IoT Messaging
+
+1. What is MQTT?
+    - MQTT is an OASIS stadnard messaging protocol for the Internet of Things. 
+    - It is designed as an extremely lightweight publish/subscribe messaging transport that is ideal for connecting remote devices with a small code footprint and minimal network bandwidth.
+    - MQTT today is used in a wide variety of industries such as automotive, telecommunications, oil and gas, etc
+2. Why MQTT?
+    - Lightweight and Efficient - MQTT clients are very small, require minimal resources so can be used on small microcontroller. MQTT message headers are small to optimize network bandwidth
+    - Bi-Directional Communication - MQTT allows for messaging between device to cloud and cloud to device. This makes for easy broadcasting messages to groups of things
+    - Scales to Millions of Things - MQTT can scale to connect with millions of IoT devices
+    - Reliable Message Delivery - Reliability of message delivery is important for many IoT use cases. This is why MQTT has 3 defined quality of service levels
+        - 0 - at most once
+        - 1 - at least once
+        - 2 - exactly once
+    - Support for Unreliable Networks - Many IoT devices connet over unreliable cellular networks. MQTTs support for persistent sessions reduces the time to reconnect the client with the broker
+    - Security Enabled - MQTT makes it easy to encrypt messages using TLS and authenticate clients using modern authentication protocols, such as OAuth
+3. MQTT Publish/Subscribe Architecture
+    - Publisher = MQTT Client
+    - MQTT Broker
+    - Subscriber = MQTT CLient
+
+MQTT & MQTT 5 Essentials by HiveMQ
+    1. Volume 1 - MQTT Essentials
+        a. Chapter One - Introducing MQTT
+            - History - MQTT was invented in 1999 by Andy Stanford Clark IBM and Arlen Nipper
+            - Former Acronym - MQ Telemetry Transpor
+            - Current - MQTT is NOT an Acronym
+        b. Chapter Two - The Publish Subscribe Pattern
+            - MQTT decouples Publisher and Subscriber
+            - Publisher - client that sends a message
+            - Subscriber - client(s) that receive a message
+            - Broker - handles connection between Publisher and Subscriber
+            - What is Publish/Subscribe Architecture?
+                - Space Decoupling- Publisher and subscriber do not need to know each other
+                    - MQTT Publishers and Subscribers just need to know the hostname/IP and port of the broker
+                - Time Decoupling - Publisher and subscriber do not need to run at the same time
+                - Synchonization Decoupling - Operations on both components do not need to be interrupted during publishing or receiving
+             - Scalability - operations on broker can be highly parallelized and messages can be processed in an event driven way
+             - Message Filtering by Broker
+                - MQTT - Subject Based Filtering - filtering based on the subject or topic that is part of each message
+                    - Topic - strings with a hierachical structure that allow filtering based on a limited number of expressions
+                - Content Based Filtering - filtering based on a specific content filter language. 
+                - Type Based Filtering - filtering based on type/class when using object oriented languages
+            - Distinction between MQTT and Message Queues
+                - Message Queue - incoming messages are stored in queue until picked up by client, MQTT can not process messages
+                - Message Queue - message can be processed by one consumer only, MQTT every subscriber that subscribes to the topic gets the message
+                - Message Queue - queues must be created explicitly, MQTT topics can be created on the fly
+        c. Chapter Three - Client, Broker and Connection Establishment
+            - Client - both publisher and subscriber, MQTT Client is any deivce that runs a MQTT library and connects to any MQTT Broker over a network
+            - Broker - responsible for receiving all messages, filtering the messages, and determining who is subscribed to each message, and sending the message to these subscribed clients
+                - Holds the sessions of all persisted clients, including subscriptions and missed messages
+                - Authenticates and authorizes the clients
+            - MQTT Connection - TCP/IP Stack
+                - Initiate - client sends a CONNECT message to the broker. Broker responds with a CONNACK message and a status code
+                - Disconnect - client sends a disconnet command or the connection break
+            - MQTT connection through a NAT - No problem
+            - CONNECT Message - Client Intiates Connection
+                - MQTT Packet CONNECT
+                    - clientID: client-1 - client identifier identifier eachs MQTT client
+                    - cleanSession: true - flag tells the broker whether the client wants to establish a persistent session or not, false is persistent and broker stores all subscriptions for the client and all missed messages
+                    - username: "Spencer" - used for client authenitaction and authorization
+                    - password: "White" - used for client authenitaction and authorization
+                    - lastWillTopic: "/spencer/will"
+                    - lastWillQos: 2
+                    - lastWillMessage: "unexpected exit" - message notifiers other clients when a client disconnect ungracefully
+                    - lastWillRetain: false
+                    - keepAlive: 60 - time interval in seconds that the client specifies and communicates to the broker when the connection is established, longest period of time broker and client can endure without sending a message
+            - CONNACK Message - Broker Response
+                - MQTT Packet CONNACK
+                    - sessionPresent: true - tells the client whether the broker already has a persistent session available from previous interactions with the client
+                        - clearSession: false - Option 1 - if session information is available for the client ID and the broker has stored session information, the session present flag is true
+                        - clearSession: false - Option 2 - if broker does not have any session information for the clientg ID, the session present flag is false
+                    - returnCode: 0 - connect acknowledge flag that tells the client whether the connection attempt was unsuccessful
+                        - 0 - connection accepted
+                        - 1 - connection refused, unacceptable protocol version
+                        - 2 - connection refused, identifier rejected
+                        - 3 - connection refused, server unavailable
+                        - 4 - connection refused, bad username or password
+                        - 5 - connection refused, not authorized
+        d. Chapter Four - MQTT Publish, Subscribe, and Unsubscribe
+            - MQTT Publish - a MQTT client can publish messages as soons as it connects to a broker, each message must contain a topic that the broker can use to forward the message to interested clients, typically eahc message has a payload that contains the data to transmit in byte format
+                - MQTT Packet PUBLISH
+                    - packetId: 4314
+                    - topicName: "topic/1" - simple string that is hierachically structured with forward slashes as delimeters
+                    - qos: 1 - indicates the quality of service level of the message
+                    - retainFlag: false - defines whether the message is saved by the broker as the last known good value for a topic
+                    - payload: "temperature:32.5" - actual content of the message in binary
+                    - dupFlag: false = indicates that the message is a duplicate and was resent because the intended recipient did not acknowledege the original message
+            - Publish Process
+                - Publish Message
+                - Broker Reads Messsage and acknowledegers the message according to QoS level
+                - Message is Processed
+                    - Determine which clients have subscribed to the topic
+                    - Send the subscribed clients the message
+                - IMPORTANT - the publishing client does not get any feedback about whether anyone is interested in the published message or how many clients receieved the message from the broker
+            - MQTT Subscribe - a MQTT client sends a SUBSCRIBE message to the broker with topic of interest
+                - MQTT Packet SUBSCRIBE
+                    - packet identifier - unqiuely identifiers a message as it flows between the client and broker
+                    - subscription list - a SUBSCRIBE message can contain multiple subscriptions for a client, each subscription is made up of a topic and a QoS level, can subscribe to topic pattern with wildcards
+            - MQTT SUBACK - to confirm each subscription, the broker sednds a SUBACK acknowledgement message to the client
+                - MQTT Packet SUBACK
+                    - packetId: 4313 - unique identifier used to identify a message
+                    - returnCode 1: 2 - one return code for each topic/QoS pair that it receives in the SUBSCRIBE message
+                    - returnCode 2: 1
+                        - 0 - Success - Maximum QoS 0
+                        - 1 - Success - Maximum QoS 1
+                        - 2 - Success - Maximum QoS 2
+                        - 128 - Failure
+            - MQTT Unsubscribe - deletes existing subscription of a client on the broker
+                - MQTT Packet UNSUBSCRIBE
+                    - packetId: 4313
+                    - topic1: "topic/1"
+                    - topic2: "topic/2"
+            - MQTT UNSUBACK - broker confirms unsubscription
+                - MQTT Packet UNSUBACK
+                    - packetId: 4316
+        e. Chapter Five - Topics & Best Practices
+            - Topics - refers to a UTF-8 string that the broker uses to filter messages for each connected client, consists of one or more topic levels
+                - Example - myhome/groundfloor/livingroom/temperature
+            - Wildcards - client can subscribe to exact topic or to multiple topics simulataneously
+                - Single Level: + - replaces one topic level e.g. myhome/groundfloor/+/temperature is all ground floor rooms that report temperature
+                - Multi Level: # -  covers many topic levels e.g. myhome/groundfloor/# - is all ground floor rooms that report either temperature, brightness, etc.
+                - Beginning with $ - reserved for internal statistic of the MQTT broker, clients cannot publish messages to these topics
+            - Best Practices
+                - Never use a leading forward slash
+                - Never use spaces in a topic
+                - Keep the topic short and concise
+                - Use only ASCII characters, avoid non-printable characters
+        f. Chapter Six - Quality of Service Levels
+            - Levels
+                - 0 - at most once
+                - 1 - at least once
+                - 2 - exactly once
+            - Two Sides of Message Delivery
+                - Message delivery from publisher to broker - client that publishes defines the QoS level of the message when it sends the message
+                - Message delivery from broker to subscriber - broker transmits message to subscribing clients using the QoS level that each subscriber defines during the subscription process
+                - IMPORTANT - if subscribing client defines a lower QoS than the publishing, the broker transmits the message with the lower quality of service
+            - Why is QoS Important? - opportunity to set a level that matches network reliability and application logic, makes communication in unreliable networks a lot easier
+            - How does it work?
+                - Level 0 - guarantees a best effort delivery and no guarantee of delivery i.e. fire and forget
+                - Level 1 - guarantees that a message is delivered at least one time to the receiver, sender stores the message until it gets a PUBACK packet from the receiver (BROKER) that acknowledges receipt of the message
+                - Level 2 - guarantees that each message is received only once by the intended receipients, safest and slowest quality of service level
+            - QoS Good to Know - QoS can downgrade depending on difference between publisher QoS and subscirber QoS
+            - Best Practice
+                - Use QoS 0 when...
+                    - You have a completely or mostly stable connection
+                    - You don't mind a few messages lost i.e. data is sent at short intervals
+                    - You don't need message queuing
+                - Use QoS 1 when...
+                    - You need to get every message and your use case can handle duplicates
+                - Use QoS 2 when...
+                    - It is critical to your application to receive all messages exactly once
+        g. Chapter Seven - Persistent Session and Queueing Messages
+            - Persistent Session - save all information that is relevant for the client on the broker, the client id that the client provides when it establishes connections to the broker identifies the session
+            - What is stored in persistent session?
+                - Existence of session
+                - All the subscriptions of the client
+                - ALl messages in a Quality of Service 1 or 2 flow that the client has not yet confirmed
+                - All new QoS 1 or 2 messages that the client missed while offline
+                - All QoS 2 messages receieved from the client that are not yet completely acknowledged
+            - How do you start or end a persistent session?
+                - cleanSession = false - broker creates a persistent session for the client
+                - cleanSession = true - broker does not create a persistent session
+            - Persistent Sessions on the Client Side - each MQTT client must also store a persistent session that includes all messages in a QoS 1 or 2 flow that are not yet confirmed by the broker and all QoS 2 messages received from the broker that are not yet completely acknowledged
+            - Best Practices
+                - Persistent Session
+                    - client must get all messages from a certain topic, even if it is offline, you want the broker to queue the messages for the client and deliver them as soon as the client is back online
+                    - client has limited resources, you want the broker to store the subscription information of the client and restore the interrupted communications quickly
+                    - clietn needs to resume all QoS 1 and 2 publish messages after a reconnect
+                - Clean Session
+                    - client needs only to publish messages to topics, client does not need to subscribe to topics
+                    - client does not need to get messages that it misses offline
+                - How long does the broker store messages? The broker stores messages until the clients come back online and receives the message, if client does not come back online for a long time, the memory limit of the operating system is the primary constraint
+        h. Chapter Eight
+        i. Chapter Nine
+        j. Chapter Ten
+        k. Chapter Eleven
+    2. Volume 2 - MQTT 5 Essentials
+        a. Chapter One
+        b. Chapter Two
+        c. Chapter Three
+        d. Chapter Four
+        e. Chapter Five
+        f. Chapter Six
+        g. Chapter Seven
+        h. Chapter Eight
+        i. Chapter Nine
+        j. Chapter Ten
+        k. Chapter Eleven
+        l. Chapter Twelve
