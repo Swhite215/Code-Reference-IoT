@@ -213,15 +213,102 @@ MQTT & MQTT 5 Essentials by HiveMQ
                 - Step by Step Guide on MQTT WebSockets Client
                 - MQTT over WebSockets
     2. Volume 2 - MQTT 5 Essentials
-        a. Chapter One
-        b. Chapter Two
-        c. Chapter Three
-        d. Chapter Four
-        e. Chapter Five
-        f. Chapter Six
-        g. Chapter Seven
-        h. Chapter Eight
-        i. Chapter Nine
-        j. Chapter Ten
-        k. Chapter Eleven
-        l. Chapter Twelve
+        a. Chapter One - Introduction to MQTT 5
+            - MQTT Design Goals
+                - Add features that long term users want without increasing overhead or decreasing ease of use
+                - Improve performance and scalability without adding unncessary complexity
+                - Functional Objectives
+                    - Enhancement for scalability and large scale systems
+                    - Improved error reporting
+                    - Formalize commoon patterns including capability discover and request response
+                    - Extensibility mechanisms including user properties
+                    - Performance improvements and support for small clients
+        b. Chapter Two - Foundational Changes in the MQTT 5 Protocol
+            - MQTT is still MQTT - Mostly
+            - User Properties in the MQTT Header & Reason Codes - add custom key-value properties in the MQTT header
+            - Reason Codes - indicates that a pre-defined protocol error occurred carried on CONNACK, PUBACK, PUBREC, PUBREL, PUBCOMP, SUBACK, UNSUBACK, AUTH, DISCONNECT
+            - Clean Session is now Clean Start - broker discards any previous session data and the client starts with a fresh session, however, the session won't be cleaned automatically after the TCP connection is closed, to trigger deletion, use the Session Expiry Interval header field with a value of 0
+            - Additional MQTT Packet - AUTH Packet - packet can be sent by brokers and clients after connection establishment to use complex challenge/response auth methods like SCRAM or Kerberos, and OAuth, also allows re-authentication without closing the connection
+            - New Data Type - UTF-8 String Pairs
+                - Total Data Types - Bit, Two Byte Integer, Four Byte Integer, UTF-8 Encoded String, Variable Byte Integer, Binary Data, UTF-8 String Pair
+            - Bi- Directional DISCONNECT Packets - broker is now allowed to send a MQTT DISCONNECT packet prior to closing the socket
+            - No Retry for QoS 1 and 2 Messages - brokers and clients are not allowed to retransmit MQTT messages for healthy TCP connections
+            - Using Passwords without Usernames
+        c. Chapter Three - Why You Should Upgrade to MQTT 5
+            - Better Error Handling for More Robust Systems
+                - Session and Message Expiry Feature - set a time lime for each message and session
+                - Negative Acknowledgements - broker can send an acknowledgement to reject particular messages
+            - More Scalability for Cloud Native Computing
+                - Shared Subscriptions - allow multiple MQTT client instances to share the same subscription on the broker
+                - Topic Aliases - substitute topic strings with an integer
+            - Greater Flexibility and Easier Integration
+                - User Properties - add a key-value property to the message header of an MQTT message
+                - Payload Format Indicatores - make message processing easier
+            - The Rise of a Single IoT Standard
+            - HiveMQ and MQTT v5
+        d. Chapter Four - Session and Message Expiry Intervals
+            - Session Expiry Interval - interval defines the period of time that the broker stores the session information of that particular MQTT client
+            - Message Expiry Interval - interval definesd the period of time that the broker stores the PUBLISH message for any matching susbscribers that are not currently connected
+            - Why were the expiry intervals introduced? - automated house cleaning mechanism
+            - Note - when the session for a client expires, all of the messages that are queued for the client expire with the session, regardles of the message expiry status
+        e. Chapter Five - Improved Client Feedback and Negative ACKS
+            - Feedback on Connection Establishment - broker can tell client which features are supported and/or allowed to be used
+                - Features - retained messages, wildcard subscriptions, subscription identifiers, shared subscription, topic aliases, maximum quality of service level the client can use
+                - Limits on - keep alive, session expiry interval, maximum packet size, maximum number of topic aliases the client can send
+            - Better Reason Codes - more than 20 unsuccessful reason codes
+            - New Reasong Strings - supplies context for a reason code i.e. a human readable string designed for diagnostics
+            - Server-Setn Disconnect Packets - allows the server to send a DISCONNECT packet, containing a reason code and reason string, to the client before it closes the connection 
+            - Negative Acknowledgements - UNSUBACK contains a reason code that informs the client about the success status of its UNSUBSCRIBE attempt with a number of possible reasons for failure
+        f. Chapter Six - User Properties
+            - User Properties - basic UTF-8 string key-value pairs that you can append to almost every type of MQTT packet excluding PINGREQ and PINGRES
+            - Why were User Properties introduced? - lack of extensibility of the protocol and the difficult of creating multi-vendor deployments
+            - Practical Use Case Examples
+                - Saving resources with payload metadata - each message carries its own parsing information and reduces the computing load on the entire system
+                - Increased efficiency through application level routing - dealing with systems with multiple inputs for the same published message in a topic
+                - Transparent traceability in complex systems - allows publisher to easily add information about itself e.g. a clientID, publishing region, or system identifier
+        g. Chapter Seven - Shared Subscriptions
+            - Shared Subscriptions - allow MQTT clients to share the same subscription on the broker i.e. client load balancing, susbcription group can be imagined as a virtual client that acts as a proxy for multiple individual subscribers simultaneously
+            - Shared Subscriptin Topic Syntax - $share/GROUPID/TOPIC
+                - share$ - a static shared subscription identifier
+                - GROUPID - a group identifier
+                - TOPIC - the actual topic subscriptions
+            - Shared Subscription Use Cases
+                - Client load balancing for MQTT clients that are unable to handle the load on subscribed topics
+                - Worker backend applications that ingest MQTT streams and need to scale horizontally
+                - QoS 1 or 2 are used for delivery semantics but ordered-topc guarantees are not required
+                - Hot topics with higher message rates than other topics in the system are causing a scalability bottleneck
+            - How to subscribe with shared subscriptions? - subscribe to broker, on a topic, as a client, with a specific virtual group
+            - Scaling MQTT Subscribers with Shared Subscriptions - gettijng work distribution in a pushing fashion
+        h. Chapter Eight - Payload Format Description
+            - Payload Format Indicator - part of any MQTT packet that contains a payload i.e. CONNECT with a WILL or PUBLISH, indicator is a optional byte value, 0 indicates an unspecified byte stream, 1 indicates a UTF-8 encoded payload
+            - Content-Type - identifiers the kind of UTF-8 encoded payload
+            - Why describe the Payload Format? - open possibility to create and define standards for MQTT with variable payload formats
+        i. Chapter Nine - Request-Response Pattern
+            - Response Topic
+            - Correlation Data - optional binary data that follows the response topic, the sender of the requests uses the data for identifying to which specific request a response that is received later relates
+            - Response Information - a client can request response information from the broker by setting a boolean field in CONNECT, when set to true, broker can send an optional UTF-8 string in the CONNACK to pass information about the response topics that are expected to be used
+            - End-to-End Acknowlegement - request-reposen patterns enable end-to-end acknowledgements e.g. a smart door alert and knowing when the message was received and what was the result of the command
+            - Best Practices and Gotchas
+                - Requestor should always subscribe to the reponse topic before sending the request
+                - Use unique identifiers in the response topic
+                - Make sure that intended responsers have the necessary permissiosn to publish and subscribe to the response topics
+                - Reserve a specific part of the topic tree for this purpose and use the response information field to pass it along to clients
+        j. Chapter Ten - Topic Alias
+            - Topic Aliases - interger value that can be used as a substitute for topic names
+            - Restrictions - topic alias maximum, if maximum is 0, then no aliases are permitted
+            - Use Case - when you want to send many small messages in real time with long topic names
+        k. Chapter Eleven - Enhanced Authentication
+            - Implementing Challenge-Response Authentication - MQTT 5 Enhanced Authentication provides the tools you need to implement authentication in a challenge-response manner
+            - Key Authentication Message Properties
+                - Authentication Method - identified by byte 21 - used to choose and describe a way of authentication that the client and server have agreed upon e.g. SCRAM-SHA or GS2-KRB
+                - Authentication Data - identifier by byte 22 - binary information, used to transfer multiple iterations of encrypted secrets or protocol steps
+            - Authentication Flow
+                - MQTT Client sends CONNECT w/ Authentication Method and Authentication Data
+                - MQTT Broker sends AUTH w/ Authentication Method and Authentication Data
+                - MQTT Client responds with AUTH w/ Authentication Method and Authentication Data
+                - MQTT Broker responds with CONNACK w/ Authentication Method and Authentication Data 
+        l. Chapter Twelve - Flow Control
+            - Flow Control - address the varying conditions among MQTT clients and brokers in a transparent manner, enables dynamic message flow adjustment for use cases that involve multiple non-identical systems and devices
+            - How it Works - client and broker negotiate each other's in-flight windows during the connection establishment
+                - Receive Maximum in CONNECT - tells the broker the maximum number of unacknowledged PUBLISH messages the client is able to receive
+                - Receive Maximum in CONNACK - tells the client the maximum number of unacknowledged PUBLISH messages the broker is willing to receive
