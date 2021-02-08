@@ -77,6 +77,8 @@ MQTT & MQTT 5 Essentials by HiveMQ
                         - 3 - connection refused, server unavailable
                         - 4 - connection refused, bad username or password
                         - 5 - connection refused, not authorized
+            - DISCONNECT Message
+                - MQTT Packet DISCONNECT
         d. Chapter Four - MQTT Publish, Subscribe, and Unsubscribe
             - MQTT Publish - a MQTT client can publish messages as soons as it connects to a broker, each message must contain a topic that the broker can use to forward the message to interested clients, typically eahc message has a payload that contains the data to transmit in byte format
                 - MQTT Packet PUBLISH
@@ -171,10 +173,45 @@ MQTT & MQTT 5 Essentials by HiveMQ
                     - client needs only to publish messages to topics, client does not need to subscribe to topics
                     - client does not need to get messages that it misses offline
                 - How long does the broker store messages? The broker stores messages until the clients come back online and receives the message, if client does not come back online for a long time, the memory limit of the operating system is the primary constraint
-        h. Chapter Eight
-        i. Chapter Nine
-        j. Chapter Ten
-        k. Chapter Eleven
+        h. Chapter Eight - Retained Messages
+            - Retained Messages - a normal MQTT message with the retained flag set to true, the broker stores the last retained message and the corresponding QoS for that topic
+            - Retained Messages - help newly subscribed clients get a status update immediately after they subscribe to a topic, eliminates the wait for the publishing clients to send the next update i.e. last known good value
+            - Send a Retained Message - just set the retained flag of an MQTT published message to true
+            - Delete a Retained Message - send a retained message with a zero-byte payload on the topic where you want to delete the previous retained message
+            - Why and When?
+                - A retained message makes sense when you want newly connected subscribers to receive messages immediately
+                    - Example - status of device1 is on the topic myhome/devices/device1/status - new subscribes get the status of the device immediately after they subscribe
+                - Withouyt retained messages, new subscribes are kept in the dark between publish intervals
+        i. Chapter Nine - Last Will and Testament
+            - Disconnects
+                - Ungracefully - due to loss of connection, empty bateries, or many other reasons
+                - Graceful - with an MQTT DISCONNECT message
+            - Last Will and Testament - notifies other clients about an ungracefully disconnected client
+                - Last Will Message - normal MQTT message with a topic, retained message flag, QoS, and payload, if Broker sees ungraceful disconnect, the broker sends the last will message to all subscribed clients of the last will topic
+            - How do you specifiy a LWT message for a client? - specify this in the CONNECT message when connecting to a broker from a client
+            - When does a rboker send the LWT message?
+                - Broker detects an I/O or network failure
+                - Client fails to communicate within the defined Keep Alive period
+                - Client does not sewnd a DISCONNECT packer before it closes the network connection
+                - Brokers closes the network conection because of a protocol error
+            - Best Practices - When should you use LWT? - great way to notify other subscribed clients about the unexpected loss of connection of another client
+        j. Chapter Ten - Keep Alive and Client Take-Over
+            - Problem of Half Open TCP Connection - TCP connections that are out of sync
+            - MQTT Keep Alive - ensures that the connection between broker and client is still open, absence of any control packets, client MUST send a PINGREQ packet
+            - Keep Alive Flow
+                - MQTT PINGREQ Packet - sent by the client and indiactes to the broker that the client is still alive
+                - MQTT PINGRESP Packer - broker replies to PINGREQ with PINGRESP to show the client that it is still available
+            - Client Take-Over - if broker detects a half-open connection, it performs a client take over, the broker closes the previous connection and establishes a new connection
+        k. Chapter Eleven - MQTT Over WebSockets
+            - Enables
+                - Displaying live infromation from a device or sensor
+                - Receive push notifications e.g. an alert or critical condition warning
+                - See the current status of devices with LWT and retained messages
+                - Communicate efficiently with mobile web applications
+            - Getting Started
+                - Testing and Debugging - HiveMQ MQTT
+                - Step by Step Guide on MQTT WebSockets Client
+                - MQTT over WebSockets
     2. Volume 2 - MQTT 5 Essentials
         a. Chapter One
         b. Chapter Two
