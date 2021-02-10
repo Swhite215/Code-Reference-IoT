@@ -1,0 +1,20 @@
+Guide to Setting up a MQTT Publisher, Broker, and Subscriber
+
+1. Pre-Requisites
+    - Broker - Eclispe Mosquitto at http://mosquitto.org/
+    - Publisher/Client - mqtt npm package at https://www.npmjs.com/package/mqtt and https://www.npmjs.com/package/async-mqtt
+
+2. Guide
+    a. Setup Mosquitto Broker
+        - Download: ```brew install mosquitto```
+        - Start in Background: ```./start_broker.sh 1````
+        - Start in Foreground: ```./start_broker.sh 2```
+        - IMPORTANT: configuration file is located at "/usr/local/etc/mosquitto/mosquitto.conf", edit this when necessary
+    b. Start Broker Data Subscriber: ```node mqtt_broker_data_subscriber.js```
+        - This logs some system information about the broker and is a good check to confirm it is working properly.
+    c. Start Subscriber Client: ```node mqtt_subscriber.js```
+    d. Start Publisher Client: ```node mqtt_publisher.js```
+    e. Tearing Down the Project
+        - The MQTT Publishers and Subscribers - Exit on Complete
+        - Stop Mosquitto Broker in Background: ```./stop_broker.sh```
+        - Stop Mosquitto Broker in Foreground: CTRL-C
