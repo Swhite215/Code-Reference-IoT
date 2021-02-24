@@ -1,0 +1,13 @@
+Guide and Notes for Working with MQTT.fx
+
+1. Getting Started
+    - Open MQTT.fx
+    - Configure Broker Settings
+    - Connect to Broker (Local, Cloud, etc)
+    - Subscribe to Topics
+    - Optional: Publish to a Topic through UI
+    - Monitor Subscriptions
+2. Best Practices/Tips and Tricks
+    - Use payload decoders for easy viewing
+    - Use topics collector to see all topics on broker
+        - Double click a topic to subscribe
