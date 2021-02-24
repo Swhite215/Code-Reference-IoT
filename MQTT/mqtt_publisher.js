@@ -7,7 +7,7 @@ const main = async() => {
     for (i = 0; i < 10; i++) {
         let dataModel = {
             messageid: uuidv4(),
-            messageHash: "",
+            messageHash: "", // MD5 HASH
             dateTime: new Date(),
             itemInstanceID: "PartNumber_" + i,
             assetID: "A1000",
