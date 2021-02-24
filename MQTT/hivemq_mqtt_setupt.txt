@@ -1,14 +1,17 @@
 Guide to Setting up a MQTT Publisher, HiveMQ Broker, and Subscriber
 
 1. Pre-Requisites
-    - Broker - HiveMQ at https://www.hivemq.com/downloads/
+    - Broker - HiveMQ at https://www.hivemq.com/downloads/ - store in /user/local/bin
     - Publisher/Client - mqtt npm package at https://www.npmjs.com/package/mqtt and/or https://www.npmjs.com/package/async-mqtt
 
 2. Guide
     a. Setup HiveMQ Broker
         - Start in Foreground: ```./start_broker.sh 3```
-        - IMPORTANT: configuration file is located at "/Users/pramitamitra/Applications/hivemq-4.5.1/conf/config.xml", edit this when necessary
-    b. Start Subscriber Client: ```node mqtt_subscriber.js```
-    c. Start Publisher Client: ```node mqtt_publisher.js```
+        - IMPORTANT: configuration file is located at "/usr/local/bin/hivemq-4.5.1/conf/config.xml", edit this when necessary
+    b. Open HiveMQ Dashboard
+        - Visit localhost:8080 in browser
+        - Default credentials is username: admin, and password: hivemq
+    c. Start Subscriber Client: ```node mqtt_subscriber.js```
+    d. Start Publisher Client: ```node mqtt_publisher.js```
     e. Tearing Down the Project
         - Stop HiveMQ Broker in Foreground: CTRL-C
